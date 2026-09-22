@@ -1,0 +1,25 @@
+[project]
+name = "mott"
+version = "0.1.0"
+description = "Mott — дообучение Qwen3-4B на чеченском языке (MLX-LM, QLoRA)"
+readme = "README.md"
+authors = [
+    { name = "977ADAM", email = "977team.95@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "mlx-lm[train]==0.31.3",
+    "datasets>=3.0",
+    "huggingface-hub>=0.27",
+]
+
+[project.scripts]
+mott = "mott:main"
+
+[build-system]
+requires = ["uv_build>=0.12.1,<0.13.0"]
+build-backend = "uv_build"
+
+# Пакет лежит в корне репозитория (mott/), а uv_build по умолчанию ищет src/<name>/.
+[tool.uv.build-backend]
+module-root = ""

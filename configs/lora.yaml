@@ -1,0 +1,43 @@
+# Конфиг инструктивной настройки (стадия B).
+#
+# Запуск:  uv run mlx_lm.lora -c configs/lora.yaml
+#
+# Значения помечены «v0.1:», где они отличаются от провального запуска v0.1.
+# Разбор результата v0.1 — SPEC.md §11.
+#
+# Почему ранг задан здесь, а не флагом: флага `--lora-rank` в CLI нет,
+# но `lora_parameters` не является argparse-аргументом, поэтому значение
+# из YAML применяется. Проверено: rank 32 + num_layers 36 дают 66,06 млн
+# обучаемых параметров против 7,34 млн у rank 8 + num_layers 16.
+
+model: mlx-community/Qwen3-4B-4bit
+train: true
+data: ./data
+adapter_path: ./adapters/mott-v0.2
+
+# --- память ---
+# mlx_lm паддит ВЕСЬ батч до самого длинного примера в нём, поэтому
+# --max-seq-length не защищает (он лишь потолок). Батч 8 дал пик 17,755 ГБ
+# и OOM при бюджете 17,76 ГБ. См. SPEC.md §4.4.
+batch_size: 2
+max_seq_length: 512
+grad_checkpoint: false
+
+# --- обучение ---
+# iters = эпохи * N / batch_size.  При N=1197 и batch=2 три эпохи = 1800.
+iters: 1800
+learning_rate: 1.0e-5      # v0.1: то же. При недообучении поднять до 1e-4
+num_layers: 36             # v0.1: 16 — было мало ёмкости
+mask_prompt: true
+seed: 42
+
+lora_parameters:
+  rank: 32                 # v0.1: 8 (значение по умолчанию)
+  dropout: 0.0
+  scale: 64.0
+
+# --- логирование ---
+steps_per_eval: 150
+steps_per_report: 50
+val_batches: 25
+save_every: 300
